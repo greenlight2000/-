@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Search Restaurant</title>
+</head>
+<body>
+    <!--  搜索餐厅  -->
+    <form id="form">
+        <input type="text" name="restaurantName" placeholder="输入餐厅名称" id="restName">
+        <input type="button" value="搜索" id="searchBtn">
+    </form>
+    <!--  显示搜索结果  -->
+    <section>
+        <ul id="RestList"></ul>
+    </section>
+
+    <script src="JQuery/jquery-1.8.3.js"></script>
+    <script src="JQuery/template.js"></script>
+    <!--  配置html  -->
+    <script type="text/html" id="tpl">
+        {{each restaurants}}
+        <li>
+            <div>
+                <label class="color-picker-label">{{$value.restName}}&nbsp;&nbsp;{{$value.building}}{{$value.floor}}楼 </label>
+                <input type="button" id="btn" value={{$value.restId}}>
+            </div>
+        </li>
+
+        {{/each}}
+    </script>
+
+    <!--  配置js  -->
+    <script type="text/javascript">
+        var restArray = [];
+        var restBox = $("#RestList");
+        $("#searchBtn").click(function(){
+
+            var value = $("#restName").val();
+
+            $.ajax({
+                url: "/Restaurant/searchRestaurant",
+                type: "get",
+                data: {
+                    key: "restName",
+                    value: value,
+                    isFuzzy: "true"
+                },
+                success: function(restList) {
+                    console.log(restList);
+                    restArray = restList;
+                    //将获取到的餐厅数组传到html模版
+                    var html = template("tpl",{
+                        restaurants: restArray
+                    });
+                    //将模版显示在页面中
+                    restBox.html(html);
+                    if(restArray.length===0){
+                        alert("no restaurant named "+value+" is found");
+                    }else{
+                        alert("search complete");
+                    }
+                },
+                error: function(res){
+                    console.log(res);
+                    alert("error");
+                }
+
+            });
+            $(document).ready(function(){
+                $("#btn").live("click",function(){
+
+                    var restId = $(this).context.attributes.value.value;
+                    window.localStorage.setItem("restId", restId);
+                    window.location.href = "/ModifyRest.html";
+                    window.localStorage.setItem("array", restArray);
+                })
+            });
+        })
+
+    </script>
+</body>
+</html>

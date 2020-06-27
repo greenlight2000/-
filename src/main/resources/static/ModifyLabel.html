@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ModifyLabel</title>
+    <script src="JQuery/jquery-1.8.3.js"></script>
+    <script src="JQuery/template.js"></script>
+    <script type="text/javascript">
+        var foodId = window.localStorage.getItem("foodId");
+        var labelSet = window.localStorage.getItem("labels");
+        alert("当前所配置标签的foodId：" + foodId);
+
+        var box = [];
+        $.each(JSON.parse(labelSet),function(i,item){
+            box.push(item.labelId);
+        });
+        // $(document).ready(function(){
+        //     alert("当前所配置标签的foodId：" + foodId);
+        //     // var labelSet = window.localStorage.getItem("labels");
+        //     // var labelSet = [68,69,74,75];
+        //     // console.log(JSON.parse(labelSet)[0]);
+        //     $.each(box,function(i,item){
+        //         $(":checkbox[value='" + item + "']").prop("checked",true);
+        //     });
+        // });
+    </script>
+</head>
+<body>
+    <button id="q">here</button>
+    <form id="presentForm"></form>
+    <form id="submitForm">
+        <input id=labelName type="text" name=labelName placeholder="新的标签名称">
+        <button id="addNewBtn" type="button">添加新标签</button>
+    </form>
+
+    <button id="bindBtn">确认选择</button>
+
+    <script id="tpl" type="text/html">
+        {{each labelList}}
+        <div>
+            {{$value.labelName}}<input type="checkbox" value={{$value.labelId}} labelId={{$value.labelId}}>
+        </div>
+        {{/each}}
+    </script>
+    <script type="text/javascript">
+
+        var dataSourceUrl = "/Label/getAllLabels";
+        var refreshList = function(){
+            //获取要用的数据
+            var list = [];
+            $.ajax({
+                url: dataSourceUrl,
+                type: "get",
+                success: function(res){
+                    list = res;
+                    //创建模版实例，传入labelList数据渲染
+                    var html = template("tpl",{
+                        labelList: list
+                    });
+                    //将标签的勾选模版动态注入页面
+                    $("#presentForm").html(html);
+                    //勾选原来的labels
+                    $(document).ready(function(){
+                        $.each(box,function(i,item){
+                            $(":checkbox[value='" + item + "']").prop("checked",true);
+                        });
+                    });
+                },
+                error: function(res){
+                    console.log("error!"+res);
+                }
+            });
+        };
+        //展示数据库中已有labels选项
+        refreshList();
+        //绑定labels和food
+        $("#bindBtn").click(function(){
+            //拼接labels字符串
+            var form = $("#presentForm");
+            var labelIdList = [];
+            var labelIdString = "";
+            for(var i=0; i<form[0].length; i++)
+            {
+                // console.log(form[0][i]);
+                // console.log(form[0][i].attributes.value.value);
+                if(form[0][i].checked === true){
+                    labelIdList.push(form[0][i].attributes.value.value);
+                    labelIdString = labelIdString + form[0][i].attributes.value.value + ","//用空格分割
+                }
+
+            }
+
+            if(labelIdString.length!==0){
+                console.log("ok.");
+            }
+            //清空老labels
+            $.ajax({
+                url: "/Label/clearLabel"+"?"+"foodId="+foodId,
+                type: "get",
+                success: function(){
+                    console.log("success clear original labels");
+                },
+                error: function(){
+                    console.log("error clear original labels");
+                }
+            });
+            //绑定新labels
+            $.ajax({
+                url: "/Label/bindFoodLabels"+"?"+"foodId="+foodId+"&labelIdString="+labelIdString.substring(0,labelIdString.length-1),
+                type: "post",
+                contentType: "applications/w-xxx-form-urlencoded",
+                data: {
+                    // foodId: foodId,
+                    // labelIdString: labelIdString.substring(0,labelIdString.length-1),//""+labelIdList,
+                },
+                success: function(){
+                    alert("successful binding!");
+                },
+                error: function(res){
+                    alert("error binding");
+                    console.log(res);
+                }
+            });
+            console.log(labelIdList);
+
+        });
+        //添加新label选项
+        $("#addNewBtn").live("click",function(){
+            var formObj = {};
+            formObj["labelName"] = $("#labelName").val();
+            formObj["foodIdSet"] = [];
+            // console.log(JSON.stringify(formObj));
+            $.ajax({
+                url: "/Label/submitLabel",
+                type: "post",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify(formObj),
+                success: function(){
+                    refreshList();
+                    alert("successful submission!");
+                },
+                error: function(res){
+                    console.log("error submission"+res);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

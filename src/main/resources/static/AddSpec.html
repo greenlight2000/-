@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AddSpec</title>
+</head>
+<body>
+    <script src="JQuery/jquery-1.8.3.js"></script>
+    <script src="JQuery/template.js"></script>
+    <script type="text/javascript">
+        var foodId = window.localStorage.getItem("foodId");
+        // console.log("fooId:"+foodId);
+        alert("当前所配置菜品的的foodId：" + foodId);
+    </script>
+
+    <!--  已添加的spec  -->
+    <section>
+        <ul id="specList"></ul>
+    </section>
+    <!--  列表模版  -->
+    <script type="text/html" id="tpl">
+        {{each tasks}}
+        <li>
+            <div class="list-view">
+                <label>specId:{{$value.specId}}, specName:{{$value.specName}}</label>
+            </div>
+        </li>
+        {{/each}}
+    </script>
+
+    <form id="form">
+        specId自动生成<br>
+        specName：
+        <input type="text" name="specName"><br>
+        specPrice:
+        <input type="text" name="specPrice"><br>
+        specNum:
+        <input type="text" name="specNum"><br>
+        foodId:<br>
+<!--        <input type=""hidden name="foodId" value={{foodId}}><br>-->
+        <input type="button" value="提交" id="btn">
+        <input type="reset" value="再添加一个">
+    </form>
+    <script type="text/javascript">
+        var specArray = [];
+        var specBox = $("#specList");
+
+        $("#btn").live("click", function(){
+            var formObj = {};
+            var formArray =$("#form").serializeArray();
+            $.each(formArray,function(i,item){
+                formObj[item.name] = item.value;
+            });
+            formObj["foodId"] = foodId;
+            console.log("foodId:"+foodId);
+            $.ajax({
+                url: "/Food/addOneSpec",
+                type: "post",
+                data: JSON.stringify(formObj),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function(res){
+                    console.log(res);
+                    alert("success");
+
+                    specArray = res.foodSpecDtoSet;
+                    var html = template("tpl",{
+                        tasks: specArray
+                    });
+                    //将返回的spec列表显示在页面中
+                    specBox.html(html)
+                },
+                error: function(res){
+                    alert("error");
+                    console.log(res);
+                }
+            })
+        });
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Get请求</title>
+</head>
+<body>
+    <button id="btn">Ajax请求</button>
+    <script type="text/javascript">
+        function ajax(options){
+
+            var defaults = {
+                type: "get",
+                url: "",
+                data: {},
+                header: {
+                    "Content-Type": "application/json"
+                },
+                success: function(){},
+                error: function(){},
+                fail: function(){}
+            }
+            //用options覆盖defaults对象
+            Object.assign(defaults, options);
+
+            //创建ajax对象
+            var xhr = new XMLHttpRequest();
+            //拼接请求参数
+            var params = "";
+            for(var attribute in defaults.data) {
+                params += attribute + "=" + defaults.data[attribute] + "&";
+            }
+            params = params.substr(0, params.length-1);//截去最后多出来的'&'
+            //封装url
+            if(defaults.type == "get") {
+                defaults.url = defaults.url + "?" + params;
+            }
+            //配置对象
+            xhr.open(defaults.type, defaults.url);
+            //把xhr send出去
+            if(defaults.type == "post") {
+                var contentType = defaults.header["Content-Type"]
+                //设置请求参数格式类型
+                xhr.setRequestHeader("Content-Type", contentType);
+
+                if(contentType == "application/json")
+                {
+                    xhr.send(JSON.stringify(defaults.data));
+                }else{
+                    xhr.send(params);
+                }
+
+            }else{
+                xhr.send();
+            }
+            //监听onload事件--xhr对象接受完毕后触发
+            xhr.onload = function(){
+
+                var contentType = xhr.getResponseHeader("Content-Type");
+                var responseText = xhr.responseText;
+
+                if(contentType.includes("application/json")){
+                    //将json字符串转换为json对象
+                    responseText = JSON.parse(responseText);
+                }
+                if(xhr.status == 200) {
+                    defaults.success(responseText);
+                }else{
+                    defaults.error(responseText, xhr);
+                }
+
+            }
+            //网络出问题时不会触发onload，但会触发onerror
+            xhr.onerror = function(){
+                defaults.fail();
+            }
+        }
+        var btn = document.getElementById("btn");
+        btn.onclick = function(){
+            ajax({
+                //请求方式
+                type: "get",
+                //请求地址
+                url: "/Food/searchFood",
+                //传参
+                data: {
+                    key: "foodId",
+                    value: 1,
+                    isFuzzy: "true"
+                },
+                header: {
+                    "Content-Type": "application/json"
+                },
+                success: function(data){
+                    //控制台打印数据
+                    console.log("success\n");
+                    console.log(data);
+                    //页面显示数据
+                    var str = '<h2>'+data[0].foodName+'</h2>';
+                    document.body.innerHTML = str;
+                },
+                error: function(data, xhr) {
+                    console.log("error\n");
+                    console.log(data);
+                    console.log(xhr);
+                },
+                fail: function(){
+                    alert("fail 网络中断，无法发送请求");
+                }
+            })
+        }
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="JQuery/jquery-1.8.3.js"></script>
+    <script src="JQuery/template.js"></script>
+    <style>
+        .context{
+            width: 900px;
+            height: 900px;
+            /*display:-webkit-flex;*/
+            display: flex;
+            //写两个这个是为了兼容性，效果都是一样的
+            justify-content: space-around;
+        }
+        .divBar{
+            width:50px;
+            display:flex;
+        }
+    </style>
+</head>
+<body>
+    <div class="context">
+        <div>
+            <ul id="modify"></ul>
+        </div>
+        <div class="divBar"> </div>
+        <div>
+            <div id="presentImg"></div>
+            <form id="uploadForm" enctype="multipart/form-data">
+                <input type="file" name="files" value="修改图片" id="uploadFile">
+                <input type="button" id="fileBtn" value="点击上传">
+            </form>
+        </div>
+    </div>
+
+    <script type="text/html" id="formTpl">
+        {{each foodData}}
+        <form id="form">
+            foodId: {{$value.foodId}}
+            <input type="hidden" name="foodId" value={{$value.foodId}}><br>
+            foodName;
+            <input type="text" name="foodName" value={{$value.foodName}}><br>
+            foodPrice:
+            <input type="text" name="foodPrice" value={{$value.foodPrice}}><br>
+            foodIntro:<br>
+            <textarea name="foodIntro" cols="30" rows="5" >{{$value.foodIntro}}</textarea><br>
+            foodStatus:
+            <input type="radio" name="foodStatus" value="正常" checked>正常
+            <input type="radio" name="foodStatus" value="打折">打折
+            <input type="radio" name="foodStatus" value="售罄">售罄<br>
+            windowIntro:
+            <input type="text" name="windowIntro" value={{$value.windowIntro}}><br>
+            likes {{$value.likes}}<br>
+            foodNum:
+            <input type="text" name="foodNum" value={{$value.foodNum}}><br>
+            restaurantId: {{$value.restaurantId}}
+            <input type="hidden" name="restaurantId" value={{$value.restaurantId}}><br>
+
+            <input type="button" value="修改配料" id="modiSpec">
+            <input type="button" value="修改标签" id="modiLabel"><br>
+            <input type="button" value="提交" id="btn">
+        </form>
+        {{/each}}
+    </script>
+    <script type="text/javascript" id="script">
+        //获取该food原始数据，渲染
+        var picUrl = "";
+        var Data = [];
+        var foodSpecDtoSet = [];
+        var labelDtoSet = [];
+        // var restId = window.localStorage.getItem("restId");
+        var foodId = "66";
+        $.ajax({
+            url: "/Food/searchFood",
+            type: "get",
+            data: {
+                key: "foodId",
+                value: foodId,
+                isFuzzy: "false"
+            },
+            success: function(data){
+                Data = [data[0]];
+                console.log(data[0]);
+                var html = template("formTpl",{
+                    foodData : Data
+                });
+                picUrl = data[0].foodPic;
+                foodSpecDtoSet = data[0].foodSpecDtoSet;
+                labelDtoSet = data[0].labelDtoSet;
+                console.log(foodSpecDtoSet);
+                console.log(labelDtoSet);
+                $("#modify").html(html);
+                $("#presentImg").html("<img id=\"img\" src=" + picUrl + " alt=\"暂无图片\" width=\"200\" height=\"200\">");
+            },
+            error: function(){
+                alert("error!");
+            }
+        });
+        //修改图片，记录新picUrl
+        $("#fileBtn").click(function(){
+            var fd = new FormData($("#uploadForm")[0]);
+
+            $.ajax({
+                url: "/upload",
+                type: 'POST',
+                data: fd,
+                processData: false,
+                contentType: false,
+                success: function (result) {
+                    alert("success upload picture");
+                    picUrl = result;
+                    if(picUrl === "上传失败"){
+                        alert("文件太大，上传失败");
+                    }
+                    console.log(picUrl);
+
+                    var img = "<img id=\"img\" src=" + picUrl + " alt=\"图片\" width=\"200\" height=\"200\">";
+                    $("#presentImg").html(img);
+                },
+                error: function (err) {
+                    alert("error!");
+                    console.log(err);
+                }
+            });
+        });
+
+        $(document).ready(function(){
+            //前往修改spec
+            $("#modiSpec").live("click",function(){
+                window.localStorage.setItem("foodId", foodId);
+                window.localStorage.setItem("specs",foodSpecDtoSet);
+                window.open("/AddSpec.html");
+            });
+            //前往修改label
+            $("#modiLabel").live("click",function(){
+                window.localStorage.setItem("foodId", foodId);
+                window.localStorage.setItem("labels",JSON.stringify(labelDtoSet));
+                console.log(labelDtoSet);
+                window.open("/ModifyLabel.html");
+            });
+            //提交修改数据后的表单
+            $("#btn").live("click",function(){
+                // console.log($("#form"));
+                // console.log($("#form").serializeArray());
+                var formObj = {};
+                var formArray =$("#form").serializeArray();
+                $.each(formArray,function(i,item){
+                    formObj[item.name] = item.value;
+                });
+                formObj["foodPic"] = picUrl;
+                formObj["foodSpecDtoSet"] = foodSpecDtoSet;
+                formObj["labelDtoSet"] = labelDtoSet;
+
+                $.ajax({
+                    url: "/Food/submit",
+                    type: "post",
+                    data: JSON.stringify(formObj),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function(res){
+                        console.log(res);
+                        alert("success");
+                    },
+                    error: function(res){
+                        alert("error");
+                        console.log(res);
+                    }
+                })
+            })
+        })
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>看看能不能跳转到controller上</title>
+</head>
+<body>
+    <form action="/Food/findAll">
+        <input type="submit" value="跳转">
+    </form>
+    <button id="btn">点击查看存储的数据</button>
+    <script type="text/javascript">
+        var btn = document.getElementById("btn");
+        btn.click(function(){
+            var array = window.localStorage.getItem("array");
+            console.log(array);
+        });
+    </script>
+</body>
+</html>

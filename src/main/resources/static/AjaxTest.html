@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ajax</title>
+</head>
+<body>
+    <button id="btn">发送Ajax请求</button>
+    <script type="text/javascript">
+        var btn = document.getElementById("btn");
+
+        btn.onclick = function(){
+            var xhr = new XMLHttpRequest();
+            //get
+            xhr.open("get","/Food/searchFood?key=foodId&value=1&isFuzzy=true");
+            // //post
+            // xhr.setRequestHeader("Content-Type","application/x-www-form-urlencoded"/"application/json")
+            //urlencoded: name=wyk&age=20&sex=man        json: JSON.stringify({name:"wyk",age:"20",sex:"man"})
+            // xhr.send(params);
+            xhr.send();
+            xhr.onload = function(){
+                //接受json数据
+                var responseText = JSON.parse(xhr.responseText)
+                //控制台打印数据
+                console.log(responseText)
+                //页面显示数据
+                var str = '<h2>'+responseText[0].foodName+'</h2>';
+                document.body.innerHTML = str;
+                //错误处理
+                if (xhr.status == 400){
+                    alert("请求出错了")
+                }
+            }
+            //网络出问题时不会触发onload，但会触发onerror
+            xhr.onerror = function(){
+                alert("网络中断，无法发送请求")
+            }
+        }
+
+    </script>
+</body>
+</html>

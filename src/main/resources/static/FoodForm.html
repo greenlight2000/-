@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Food提交表单</title>
+</head>
+<body>
+<fieldset style="width: 500px">
+    <legend>Html的Form表单元素</legend>
+    <form action="" method="post">
+        id自动生成<br>
+        菜&nbsp;&nbsp;名：
+        <input type="text" name="foodName"><br>
+        价&nbsp;&nbsp;格：
+        <input type="text" name="foodPrice" value="请输入价格"><br>
+        图&nbsp;&nbsp;片：
+        <input type="file" name="foodPic" value="上传图片"><br>
+        菜品描述：<br>
+        <textarea name="foodIntro" cols="34" rows="5"></textarea><br>
+        状&nbsp;&nbsp;态：
+        <input type="radio" name="foodStatus" value="正常" checked>正常
+        <input type="radio" name="foodStatus" value="打折">打折
+        <input type="radio" name="foodStatus" value="售罄">售罄<br>
+        窗&nbsp;&nbsp;口：
+        <input type="text" name="windowIntro" value="请输入窗口类型"><br>
+        likes 默认为0<br>
+        菜品初始数量：
+        <input type="text" name="foodNum"><br>
+        餐&nbsp;&nbsp;厅：
+        <select name="dept">
+            <option value="0">初客牛排</option>
+            <option value="1">清真餐厅</option>
+            <option value="2">旋转火锅</option>
+        </select><br>
+        前往设置配料的html<br>
+        标&nbsp;&nbsp;签：
+        <input type="checkbox" name="foodLabel" value="面食">面食
+        <input type="checkbox" name="foodLabel" value="麻辣">麻辣
+        <input type="checkbox" name="foodLabel" value="清真">清真
+        <input type="checkbox" name="foodLabel" value="素食">素食
+        <input type="checkbox" name="foodLabel" value="江南">江南
+        <br>
+
+        <!--隐藏域，在页面上无法看到，专门用来传递参数或者保存参数-->
+        <input type="hidden" name="hiddenField" value="hiddenvalue"/>
+        <!--提交表单按钮，当点击提交后，所有填写的表单内容都会被传输到服务器端-->
+        <input type="submit" value="提交(提交按钮)">
+        <!--重置表单按钮，当点击重置后，所有表单恢复原始显示内容-->
+        <input type="reset" value="重置(重置按钮)">
+    </form>
+
+</fieldset>
+</body>
+</html>

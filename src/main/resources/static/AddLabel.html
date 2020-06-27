@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AddLabel</title>
+    <script src="JQuery/jquery-1.8.3.js"></script>
+    <script src="JQuery/template.js"></script>
+</head>
+<body>
+    <button id="q">here</button>
+    <form id="presentForm"></form>
+    <form id="submitForm">
+        <input id=labelName type="text" name=labelName placeholder="新的标签名称">
+        <button id="addNewBtn" type="button">添加新标签</button>
+    </form>
+
+    <button id="bindBtn">确认选择</button>
+
+    <script id="tpl" type="text/html">
+        {{each labelList}}
+        <div>
+            {{$value.labelName}}<input type="checkbox" value={{$value.labelId}} labelId={{$value.labelId}}>
+        </div>
+        {{/each}}
+    </script>
+    <script type="text/javascript">
+        var checked = "checked";
+        $("#q").click(function(){
+            alert("here");
+            var labels = window.localStorage.getItem("labels");
+            console.log(labels);
+            console.log(JSON.parse(labels));
+            console.log(JSON.parse(labels)[0]);
+        });
+        var foodId = window.localStorage.getItem("foodId");
+        alert("当前所配置标签的foodId：" + foodId);
+        var dataSourceUrl = "/Label/getAllLabels";
+        var html;
+        var refreshList = function(){
+            //获取要用的数据
+            var list = [];
+            $.ajax({
+                url: dataSourceUrl,
+                type: "get",
+                success: function(res){
+                    list = res;
+                    //创建模版实例，渲染
+                    html = template("tpl",{
+                        labelList: list
+                    });
+                    //将模版动态注入页面
+                    $("#presentForm").html(html);
+                },
+                error: function(res){
+                    console.log("error!"+res);
+                }
+            });
+        };
+        //展示数据库中已有labels
+        refreshList();
+        //绑定labels和food
+        $("#bindBtn").click(function(){
+            var form = $("#presentForm");
+            var labelIdList = [];
+            var labelIdString = "";
+            for(var i=0; i<form[0].length; i++)
+            {
+                // console.log(form[0][i]);
+                // console.log(form[0][i].attributes.value.value);
+                if(form[0][i].checked === true){
+                    labelIdList.push(form[0][i].attributes.value.value);
+                    labelIdString = labelIdString + form[0][i].attributes.value.value + ","//用空格分割
+                }
+
+            }
+
+            console.log("233"+labelIdString.substring(0,labelIdString.length-1));
+            console.log("!"+labelIdList);
+            $.ajax({
+                url: "/Label/bindFoodLabels"+"?"+"foodId="+foodId+"&labelIdString="+labelIdString.substring(0,labelIdString.length-1),
+                type: "post",
+                contentType: "applications/w-xxx-form-urlencoded",
+                data: {
+                    // foodId: foodId,
+                    // labelIdString: labelIdString.substring(0,labelIdString.length-1),//""+labelIdList,
+                },
+                success: function(){
+                    alert("successful binding!");
+                },
+                error: function(res){
+                    alert("error binding");
+                    console.log(res);
+                }
+            });
+            console.log(labelIdList);
+
+        });
+        //添加新label
+        $("#addNewBtn").live("click",function(){
+            var formObj = {};
+            formObj["labelName"] = $("#labelName").val();
+            formObj["foodIdSet"] = [];
+            // console.log(JSON.stringify(formObj));
+            $.ajax({
+                url: "/Label/submitLabel",
+                type: "post",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify(formObj),
+                success: function(){
+                    refreshList();
+                    alert("successful submission!");
+                },
+                error: function(res){
+                    console.log("error submission"+res);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

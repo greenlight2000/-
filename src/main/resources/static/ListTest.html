@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>todoList</title>
+</head>
+<body>
+    <section>
+        <header>
+
+        </header>
+        <section>
+            <ul id="RespList"></ul>
+        </section>
+        <footer>
+
+        </footer>
+    </section>
+    <script src="JQuery/jquery-1.8.3.js"></script>
+    <script src="JQuery/template.js"></script>
+    <!--  列表模版  -->
+    <script type="text/html" id="tpl">
+        {{each tasks}}
+        <li>
+            <div class="list-view">
+                <label>foodName:{{$value.foodName}}, foodId:{{$value.foodId}}</label>
+                <input type="button" id="btn" value={{$value.foodId}}>搜索
+            </div>
+        </li>
+        {{/each}}
+    </script>
+    <script type="text/javascript">
+        var respArray = [];
+        var respBox = $("#RespList");
+        $.ajax({
+            url: "/Food/searchFood?key=foodId&value=1&isFuzzy=true",
+            type: "get",
+            success: function(response){
+                console.log(response);
+                respArray = response;
+                var html = template("tpl",{
+                    tasks: respArray
+                });
+                //将返回数组列表显示在页面中
+                respBox.html(html)
+            }
+        })
+        // var btn = document.getElementById("btn");
+        $(document).ready(function(){
+            $("#btn").live("click", function(){
+                console.log("here");
+                //获取所选择的id
+                var foodId = $(this).context.attributes.value.value;
+                console.log(foodId);
+                window.localStorage.setItem("foodId", foodId);
+                window.window.location.href = "/Food.html"
+            })
+        })
+
+    </script>
+</body>
+</html>

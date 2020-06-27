@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ImageTest</title>
+    <script src="JQuery/jquery-1.8.3.js"></script>
+    <script src="JQuery/template.js"></script>
+</head>
+<body>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" name="files" value="上传图片" id="uploadFile">
+        <input type="button" id="fileBtn" value="点击上传">
+    </form>
+    <div id="presentImg"></div>
+
+
+
+    <script type="text/javascript">
+        //上传图片 获取url
+        var picUrl = "";
+        $("#fileBtn").click(function(){
+            var fd = new FormData($("#uploadForm")[0]);
+
+            $.ajax({
+                url: "/upload",
+                type: 'POST',
+                data: fd,
+                processData: false,
+                contentType: false,
+                success: function (result) {
+                    alert("success upload picture");
+                    picUrl = result;
+                    if(picUrl === "上传失败"){
+                        alert("文件太大，上传失败");
+                    }
+                    console.log(picUrl);
+
+                    var img = "<img id=\"img\" src=" + picUrl + " alt=\"图片\" width=\"200\" height=\"200\">";
+                    $("#presentImg").html(img);
+                },
+                error: function (err) {
+                    alert("error!");
+                    console.log(err);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

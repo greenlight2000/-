@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ModifyRest</title>
+</head>
+<body>
+    <ul id="modify"></ul>
+    <script src="JQuery/jquery-1.8.3.js"></script>
+    <script src="JQuery/template.js"></script>
+    <script type="text/html" id="tpl">
+        {{each restData}}
+        <form id="form">
+            restId: {{$value.restId}}
+            <input type="hidden" name="restId" value={{$value.restId}}><br>
+            restName
+            <input type="text" name="restName" value={{$value.restName}}><br>
+            building&nbsp;
+            <input type="text" name="building" value={{$value.building}}><br>
+            floor&emsp;&nbsp;&nbsp;&nbsp;
+            <input type="text" name="floor" value={{$value.floor}}><br>
+            restIntro&nbsp;
+            <input type="text" name="restIntro" value={{$value.restIntro}}><br>
+            <input type="button" value="提交" id="btn">
+<!--            <button type="reset">重置</button>-->
+        </form>
+        {{/each}}
+    </script>
+    <script type="text/javascript" id="script">
+        var modifyBox = $("#modify");
+        var restData = [];
+        var restId = window.localStorage.getItem("restId");
+        $.ajax({
+            url: "/Restaurant/getRestInfo",
+            type: "get",
+            data: {
+                restaurantId: restId
+            },
+            success: function(data){
+                restData = [data];
+                console.log(data);
+                var html = template("tpl",{
+                    restData: restData
+                });
+                modifyBox.html(html);
+            },
+            error: function(){
+                alert("error!");
+            }
+        });
+        $(document).ready(function(){
+            $("#btn").live("click",function(){
+                // console.log($("#form"));
+                console.log($("#form").serializeArray());
+
+                var formObj = {};
+                var formArray =$("#form").serializeArray();
+                $.each(formArray,function(i,item){
+                    formObj[item.name] = item.value;
+                });
+                $.ajax({
+                    url: "/Restaurant/submit",
+                    type: "post",
+                    data: JSON.stringify(formObj),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function(res){
+                        console.log(res);
+                        alert("success");
+                    },
+                    error: function(res){
+                        alert("error");
+                        console.log(res);
+                    }
+                })
+            })
+        })
+
+
+
+        // function ajax(options){
+        //
+        //     var defaults = {
+        //         type: "get",
+        //         url: "",
+        //         data: {},
+        //         header: {
+        //             "Content-Type": "application/json"
+        //         },
+        //         success: function(){},
+        //         error: function(){},
+        //         fail: function(){}
+        //     }
+        //     //用options覆盖defaults对象
+        //     Object.assign(defaults, options);
+        //
+        //     //创建ajax对象
+        //     var xhr = new XMLHttpRequest();
+        //     //拼接请求参数
+        //     var params = "";
+        //     for(var attribute in defaults.data) {
+        //         params += attribute + "=" + defaults.data[attribute] + "&";
+        //     }
+        //     params = params.substr(0, params.length-1);//截去最后多出来的'&'
+        //     //封装url
+        //     if(defaults.type == "get") {
+        //         defaults.url = defaults.url + "?" + params;
+        //     }
+        //     //配置对象
+        //     xhr.open(defaults.type, defaults.url);
+        //     //把xhr send出去
+        //     if(defaults.type == "post") {
+        //         var contentType = defaults.header["Content-Type"]
+        //         //设置请求参数格式类型
+        //         xhr.setRequestHeader("Content-Type", contentType);
+        //
+        //         if(contentType == "application/json")
+        //         {
+        //             xhr.send(JSON.stringify(defaults.data));
+        //         }else{
+        //             xhr.send(params);
+        //         }
+        //
+        //     }else{
+        //         xhr.send();
+        //     }
+        //     //监听onload事件--xhr对象接受完毕后触发
+        //     xhr.onload = function(){
+        //
+        //         var contentType = xhr.getResponseHeader("Content-Type");
+        //         var responseText = xhr.responseText;
+        //
+        //         if(contentType.includes("application/json")){
+        //             //将json字符串转换为json对象
+        //             responseText = JSON.parse(responseText);
+        //         }
+        //         if(xhr.status == 200) {
+        //             defaults.success(responseText);
+        //         }else{
+        //             defaults.error(responseText, xhr);
+        //         }
+        //
+        //     }
+        //     //网络出问题时不会触发onload，但会触发onerror
+        //     xhr.onerror = function(){
+        //         defaults.fail();
+        //     }
+        // }
+        // var form = document.getElementById("form1");
+        // var formData = new FormData(document.getElementById("form1"));
+        // var btm = document.getElementById("btn");
+        // var restInfo;
+        // btn.onclick = function() {
+        //     console.log(form);
+        //     console.log(formData);
+        //
+        //     ajax({
+        //         //请求方式
+        //         type: "get",
+        //         //请求地址
+        //         url: "http://localhost:22/Restaurant/getRestInfo",
+        //         data: {},
+        //         success: function(data){
+        //             //控制台打印数据
+        //             console.log("success\n");
+        //             console.log(data);
+        //             this.restInfo = data;
+        //             //console.log(restInfo);
+        //         },
+        //         error: function(data, xhr) {
+        //             console.log("error\n");
+        //             console.log(data);
+        //             console.log(xhr);
+        //         },
+        //         fail: function(){
+        //             alert("fail 网络中断，无法发送请求");
+        //         }
+        //     })
+        // }
+
+    //
+    //
+    </script>
+<!--    <form id="form">-->
+<!--        restId: 自动生成-->
+<!--        <input type="hidden" name="restId" value=0><br>-->
+<!--        restName&nbsp;-->
+<!--        <input type="text" name="restName"><br>-->
+<!--        building&nbsp;-->
+<!--        <input type="text" name="building"><br>-->
+<!--        floor&nbsp;-->
+<!--        <input type="text" name="floor"><br>-->
+<!--        restIntro&nbsp;-->
+<!--        <input type="text" name="restIntro"><br>-->
+<!--        <input type="button" value="提交" id="btn">-->
+<!--        <button type="reset">重置</button>-->
+<!--    </form>-->
+
+</body>
+</html>

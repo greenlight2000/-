@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>生成订单</title>
+    <script src="JQuery/jquery-1.8.3.js"></script>
+</head>
+<body>
+
+    <button id="btn1">click to submit bill</button>
+    <button id="btn2">click to submit orders</button>
+    <script type="text/javascript">
+        //定义一个计算order总金额的函数 (在用户选择菜品及其配料的时候就要实时记录他们的价格) *这里的specPrice选择的所有spec的价格总和
+        function CalOrderPrice(foodPrice, specPrice){
+            return foodPrice + specPrice;
+        }
+        //定义一个计算bill总金额的函数
+        function SumUpPrice(billOrderDtoSet){
+            var addPrice = 0;
+            for (var billOrder in billOrderDtoSet){
+                addPrice = addPrice + billOrder["orderPrice"];
+            }
+            return addPrice;
+        }
+        //获取当前用户的customerId
+        var customerId = 0;
+        //构建一个装所有billOrderDto的集合对象
+        var billOrderDtoSet = {};
+        //构建每一个billOrderDto对象(用户选择菜品时 用表单记录这些属性的信息)
+        var billOrderDto1 = {};
+        billOrderDto1["orderPrice"] = CalOrderPrice(12, 2);
+        billOrderDto1["orderNote"] = "老板我不吃蒜";
+        billOrderDto1["specArr"] = "辣椒;加蛋;";//specArr字符串编辑规则：specName+";"  后台再解析串 转成数组
+        billOrderDto1["foodName"] = "煎饼";
+        billOrderDto1["foodPic"] = "http://..."
+        billOrderDto1["foodId"] = "123";
+        billOrderDto1["billId"] = "0";//这时候billId还不知道，等上传billDto对象后 后台会返回一个billId，那时候再更新
+        billOrderDtoSet.add(billOrderDto1);
+        var billOrderDto2 = {};
+        billOrderDto2["orderPrice"] = CalOrderPrice(12, 2);
+        billOrderDto2["orderNote"] = "老板我不吃蒜";
+        billOrderDto2["specArr"] = "辣椒;加蛋;";//specArr字符串编辑规则：specName+";"  后台再解析串 转成数组
+        billOrderDto2["foodName"] = "煎饼";
+        billOrderDto2["foodPic"] = "http://..."
+        billOrderDto2["foodId"] = "123";
+        billOrderDto2["billId"] = "0";//这时候billId还不知道，等上传billDto对象后 后台会返回一个billId，那时候再更新
+        billOrderDtoSet.add(billOrderDto2);
+        //...
+
+
+        //构建billDto对象(只要用户点击支付就构建并上传一个billDto对象，至于后来到底有没有付钱，用payStatus记录)
+        var billDto = {};
+        //填写billDto各个属性
+        billDto["takeTime"] = "";//取餐时间 暂时写个0000-00-00？
+        billDto["payTime"] = "";//付款时间 暂时写个0000-00-00？
+        billDto["payStatus"] = "unpaid";
+        billDto["billNum"] = "";//取餐号 用时间戳生成个随机数？
+        billDto["billPrice"] = SumUpPrice();
+        billDto["customerId"] = customerId;
+        billDto["billOrderDtoSet"] = {};//这个时候先设为空集，因为billOrderDto对象里的billId还没填好，先把billDto传上去获取billId
+        //上传billDto
+        var billId = 0;//获取后台传回来的billId
+        $("#btn1").click(function(){
+            $.ajax({
+                url: "/Bill/submitBill",
+                type: "post",
+                data: JSON.stringify(billDto),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function(res){
+                    console.log(res);
+                    billId = res;
+                    alert("success!");
+                },
+                error: function(res){
+                    console.log(res);
+                    alert("error!");
+                }
+            });
+        });
+
+        //逐个上传billOrderDto
+        $("#btn2").click(function(){
+            for(var billOrderDto in billOrderDtoSet){
+                billOrderDto["billId"] = billId;
+                $.ajax({
+                    url: "/BillOrder/submitBillOrder",
+                    type: "post",
+                    data: JSON.stringify(billOrderDto),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function(res){
+                        console.log(res);
+                        alert("success!");
+                    },
+                    error: function(res){
+                        console.log(res);
+                        alert("error!");
+                    }
+                });
+            }
+        });
+
+        //支付成功后 更新bill的支付状态
+        $.ajax({
+            url: "/Bill/updatePayStatus",
+            type: "get",
+            data: billId,
+            success: function(res){
+                console.log(res);
+                alert("success!");
+            },
+            error: function(res){
+                console.log(res);
+                alert("error!");
+            }
+        });
+
+
+    </script>
+<!--        billDto 数据结构-->
+<!--        private long billId;-->
+<!--        private Timestamp payTime;-->
+<!--        private Timestamp takeTime;-->
+<!--        private String payStatus;-->
+<!--        private String billNum;-->
+<!--        private float billPrice;-->
+<!--        private long customerId;-->
+<!--        private Set<BillOrderDto> billOrderDtoSet = new HashSet<>();-->
+
+<!--        billOrderDto 数据结构-->
+<!--        private long orderId;-->
+<!--        private float orderPrice;-->
+<!--        private String orderNote;-->
+<!--        private String[] specArr;-->
+<!--        private String foodName;-->
+<!--        private String foodPic;-->
+<!--        private long foodId;-->
+<!--        private long billId;-->
+</body>
+</html>

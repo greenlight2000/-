@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SubmitRest</title>
+</head>
+<body>
+    <form id="form">
+        restId: 自动生成
+        <input type="hidden" name="restId" value="0"><br>
+        restName&nbsp;
+        <input type="text" name="restName"><br>
+        building&nbsp;
+        <input type="text" name="building"><br>
+        floor&nbsp;
+        <input type="text" name="floor"><br>
+        restIntro&nbsp;
+        <input type="text" name="restIntro"><br>
+        <input type="button" value="提交" id="btn">
+        <button type="reset">重置</button>
+    </form>
+    <script type="text/javascript">
+        // var objData = function (data) {
+        //     var objData = {};
+        //
+        //     for (var entry of data.entries()){
+        //         objData[entry[0]] = entry[1];
+        //     }
+        //     return objData;
+        // };
+        // function ajax(options){
+        //
+        //     var defaults = {
+        //         type: "get",
+        //         url: "",
+        //         data: {},
+        //         header: {
+        //             "Content-Type": "application/json"
+        //         },
+        //         success: function(){},
+        //         error: function(){},
+        //         fail: function(){}
+        //     }
+        //     //用options覆盖defaults对象
+        //     Object.assign(defaults, options);
+        //
+        //     //创建ajax对象
+        //     var xhr = new XMLHttpRequest();
+        //     //拼接请求参数
+        //     var params = "";
+        //     for(var attribute in defaults.data) {
+        //         params += attribute + "=" + defaults.data[attribute] + "&";
+        //     }
+        //     params = params.substr(0, params.length-1);//截去最后多出来的'&'
+        //     //封装url
+        //     if(defaults.type == "get") {
+        //         defaults.url = defaults.url + "?" + params;
+        //     }
+        //     //配置对象
+        //     xhr.open(defaults.type, defaults.url);
+        //     //把xhr send出去
+        //     if(defaults.type == "post") {
+        //         var contentType = defaults.header["Content-Type"]
+        //         //设置请求参数格式类型
+        //         xhr.setRequestHeader("Content-Type", contentType);
+        //
+        //         if(contentType == "application/json")
+        //         {
+        //             xhr.send(JSON.stringify(defaults.data));
+        //         }else{
+        //             xhr.send(params);
+        //         }
+        //
+        //     }else{
+        //         xhr.send();
+        //     }
+        //     //监听onload事件--xhr对象接受完毕后触发
+        //     xhr.onload = function(){
+        //
+        //         var contentType = xhr.getResponseHeader("Content-Type");
+        //         var responseText = xhr.responseText;
+        //
+        //         if(contentType.includes("application/json")){
+        //             //将json字符串转换为json对象
+        //             responseText = JSON.parse(responseText);
+        //         }
+        //         if(xhr.status == 200) {
+        //             defaults.success(responseText);
+        //         }else{
+        //             defaults.error(responseText, xhr);
+        //         }
+        //
+        //     }
+        //     //网络出问题时不会触发onload，但会触发onerror
+        //     xhr.onerror = function(){
+        //         defaults.fail();
+        //     }
+        // }
+        //
+        // // var /btn = document.getElementById("btn");
+        // // btn.onclick = function() {
+        //     console.log("here");
+        //     var formData = new FormData(document.getElementById("form"));
+        //     ajax({
+        //         type: "post",
+        //         uri: "http://localhost:22/Restaurant/submit",
+        //         header:{
+        //             "Content-Type": "application/json"
+        //         },
+        //         dataType: "json",
+        //         data: objData(formData),
+        //         success(res){
+        //             console.log("success\n");
+        //             console.log(res);
+        //             alert("success");
+        //         },
+        //         error(res){
+        //             console.log("error\n");
+        //             console.log(res);
+        //         },
+        //         fail(){
+        //             console.log("network fail");
+        //         }
+        //
+        //
+        //     })
+        // }
+        var btn = document.getElementById("btn");
+        //获取表单
+        var form = document.getElementById("form");
+        //按钮点击事件
+        btn.onclick = function () {
+            //表单转FormData对象
+            var formData = new FormData(form);
+            var objData = function (data) {
+                var objData = {};
+
+                for (var entry of data.entries()){
+                    objData[entry[0]] = entry[1];
+                }
+                // objData["foodSpecDtoSet"] = [];
+                // objData["labelDtoSet"] = [];
+                return JSON.stringify(objData);
+            };
+            //创建ajax对象
+            var xhr = new XMLHttpRequest();
+            xhr.open("post","/Restaurant/submit");
+            xhr.setRequestHeader("Content-Type","application/json");
+            xhr.send(objData(formData));
+            xhr.onload = function(){
+                if(xhr.status == 200){
+                    alert("success submit!");
+                    console.log(xhr.responseText);
+                }else
+                    console.log((xhr));
+            }
+        }
+
+
+    </script>
+</body>
+</html>

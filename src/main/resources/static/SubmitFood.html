@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SubmitFood</title>
+    <script src="JQuery/jquery-1.8.3.js"></script>
+    <script src="JQuery/template.js"></script>
+</head>
+<body>
+
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" name="files" value="上传图片" id="uploadFile">
+        <input type="button" id="fileBtn" value="点击上传">
+    </form>
+
+    <form id="form">
+        id自动生成<br>
+        菜&nbsp;&nbsp;名：
+        <input type="text" name="foodName"><br>
+        价&nbsp;&nbsp;格：
+        <input type="text" name="foodPrice"><br>
+<!--        图&nbsp;&nbsp;片：-->
+        菜品描述：<br>
+        <textarea name="foodIntro" cols="34" rows="5"></textarea><br>
+        状&nbsp;&nbsp;态：
+        <input type="radio" name="foodStatus" value="正常" checked>正常
+        <input type="radio" name="foodStatus" value="打折">打折
+        <input type="radio" name="foodStatus" value="售罄">售罄<br>
+        窗&nbsp;&nbsp;口：
+        <input type="text" name="windowIntro"><br>
+        likes 默认为0<br>
+        菜品初始数量：
+        <input type="text" name="foodNum"><br>
+        餐&nbsp;&nbsp;厅：
+        <select name="restaurantId" id="selectRest"></select><br>
+
+        配&nbsp;&nbsp;料:<br>
+<!--        <input type="hidden" name="foodSpecDtoSet" value=[] />-->
+        标&nbsp;&nbsp;签:<br>
+<!--        <input type="hidden" name="labelDtoSet" value=[] />-->
+
+<!--        <input type="checkbox" name="labelDtoSet" value="面食">面食-->
+<!--        <input type="checkbox" name="labelDtoSet" value="麻辣">麻辣-->
+<!--        <input type="checkbox" name="labelDtoSet" value="清真">清真-->
+<!--        <input type="checkbox" name="labelDtoSet" value="素食">素食-->
+<!--        <input type="checkbox" name="labelDtoSet" value="江南">江南-->
+<!--        <br>-->
+
+        <!--隐藏域，在页面上无法看到，专门用来传递参数或者保存参数-->
+        <input type="hidden" name="foodId" value="1"/>
+        <!--提交表单按钮，当点击提交后，所有填写的表单内容都会被传输到服务器端-->
+        <input type="button" value="提交(提交按钮)" id="btn">
+        <!--重置表单按钮，当点击重置后，所有表单恢复原始显示内容-->
+        <input type="reset" value="重置(重置按钮)">
+    </form>
+    <button id="gotoSpec">前往添加配料</button>
+    <button id="gotoLabel">前往添加标签</button>
+
+
+    <script type="text/html" id="restOptTpl">
+            {{each restList}}
+            <option value={{$value.restId}}>{{$value.restName}}</option>
+            {{/each}}
+    </script>
+
+    <script type="text/javascript">
+        //预加载所有餐厅
+        var restList = [];
+        $.ajax({
+            url: "/Restaurant/searchRestaurant",
+            type: "get",
+            data:{
+                key: "restName",
+                value: "",
+                isFuzzy: "true"
+            },
+            success: function(res){
+                restList = res;
+                console.log(restList);
+                var restOptHtml = template("restOptTpl",{
+                    restList:restList
+                });
+                $("#selectRest").html(restOptHtml);
+            },
+            error: function(){
+                alert("error initialized restaurant");
+            }
+        });
+
+
+        //上传图片 获取url
+        var picUrl = "";
+        $("#fileBtn").click(function(){
+            var fd = new FormData($("#uploadForm")[0]);
+
+            $.ajax({
+                url: "/upload",
+                type: 'POST',
+                data: fd,
+                processData: false,
+                contentType: false,
+                success: function (result) {
+                    alert("success upload picture");
+                    picUrl = result;
+                    if(picUrl==="上传失败"){
+                        alert("文件太大，上传失败");
+                    }
+                    console.log(picUrl);
+                },
+                error: function (err) {
+                    alert("error!");
+                    console.log(err);
+                }
+            });
+        });
+        //上传表单，获取foodId
+        var foodId;
+        $(document).ready(function(){
+            $("#btn").click(function(){
+                var formObj = {};
+                var formArray = $("#form").serializeArray();
+                $.each(formArray, function(i, item){
+                    formObj[item.name] = item.value;
+                });
+                formObj["foodId"] = 0;
+                formObj["foodPic"] = picUrl;
+                console.log(picUrl);
+                formObj["foodSpecDtoSet"] = [];
+                formObj["labelDtoSet"] = [];
+                $.ajax({
+                    url: "/Food/submit",
+                    type: "post",
+                    data: JSON.stringify(formObj),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function(res){
+                        console.log(res);
+                        foodId = res;
+                        alert("success!");
+                    },
+                    error: function(res){
+                        console.log(res);
+                        alert("error!");
+                    }
+                });
+            });
+        });
+        //前往添加spec
+        $("#gotoSpec").click(function(){
+            window.localStorage.setItem("foodId", foodId);
+            window.open("/AddSpec.html");
+        })
+        //前往添加label
+        $("#gotoLabel").click(function(){
+            window.localStorage.setItem("foodId", foodId);
+            window.open("/ModifyLabel.html");
+        })
+
+
+
+
+
+
+
+
+        // var strg = document.getElementById("storage");
+        // strg.onclick = function() {
+        //     var foodId = window.localStorage.getItem("foodId");
+        //     console.log(foodId);
+        // }
+        // //获取按钮
+        // var btn = document.getElementById("btn");
+        // //获取表单
+        // var form = document.getElementById("form");
+        // //按钮点击事件
+        // btn.onclick = function () {
+        //     //表单转FormData对象
+        //     var formData = new FormData(form);
+        //     var objData = function (data) {
+        //         var objData = {};
+        //
+        //         for (var entry of data.entries()){
+        //             objData[entry[0]] = entry[1];
+        //         }
+        //         objData["foodSpecDtoSet"] = [];
+        //         objData["labelDtoSet"] = [];
+        //         return JSON.stringify(objData);
+        //     };
+        //     //创建ajax对象
+        //     var xhr = new XMLHttpRequest();
+        //     xhr.open("post","http://localhost:22/Food/submit");
+        //     xhr.setRequestHeader("Content-Type","application/json");
+        //     xhr.send(objData(formData));
+        //     xhr.onload = function(){
+        //         if(xhr.status == 200){
+        //             alert("success submit!");
+        //             console.log(xhr.responseText);
+        //         }else
+        //             console.log((xhr));
+        //     }
+        // }
+
+    </script>
+</body>
+</html>
